@@ -1,4 +1,33 @@
 
+import numpy as np
+from scipy import stats
+import random
+
+
+
+class Genome:
+    SIZE = 10
+    DURATION_DECAY = 0.5
+
+    def __init__(self, probablities, durations):
+        self.probablities = probablities   # probabilities of activation
+        self.durations = durations      # sleep durations from gene if activated
+        pass
+
+    def mate(self, other):
+        indicies = random.sample(range(self.SIZE*2), self.SIZE)
+        probabilities = np.concatenate([self.probablities, other.probabilities])[indicies]
+        durations = np.concatenate([self.durations, other.durations])[indicies]
+        return Genome(probabilities, durations)
+
+    def get_lifecycle(self):
+        return stats.bernoulli(self.probabilities).rvs(Genome.SIZE) * self.durations
+
+    def new(self):
+        """Generate new random genome"""
+        probabilities = np.random.rand(self.SIZE)
+        durations = np.random.geometric(p=self.DURATION_DECAY, size=self.SIZE) - 1
+        return Genome(probabilities, durations)
 
 class Cicada:
     breeding_range = 3.
@@ -10,7 +39,7 @@ class Cicada:
         self.x: float = None
         self.y: float = None
         self.female: bool = True
-        self.lifecycle: int = self.get_length()
+        self.lifecycle: int = self.get_lifecycle()
 
     def get_lifecycle(self):
         """Calculate the lifecycle distribution from the genes, and sample from it"""
